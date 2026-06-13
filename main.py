@@ -7,17 +7,23 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("my app")
+        self.title("habits")
         self.geometry("400x600")
         self.grid_columnconfigure((0, 1), weight=1)
 
         self.tasks = []
 
-        self.CTkEntry = ctk.CTkEntry(self, placeholder_text="Enter task...")
-        self.CTkEntry.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
+        self.entryframe = ctk.CTkFrame(self)
+        self.entryframe.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
 
-        self.button = ctk.CTkButton(self, text="Add Task", command=self.button_callback)
-        self.button.grid(row=0, column=1, padx=20, pady=20, sticky="ew", columnspan=2)
+        self.entryframe.grid_columnconfigure(0, weight=1, minsize=220)
+        self.entryframe.grid_columnconfigure(1, weight=0, minsize=80)
+
+        self.CTkEntry = ctk.CTkEntry(self.entryframe, placeholder_text="Enter task...", width=250)
+        self.CTkEntry.grid(row=0, column=0, padx=(10,10), pady=1, sticky="ew")
+
+        self.button = ctk.CTkButton(self.entryframe, text="Add Task", command=self.button_callback, width=50)
+        self.button.grid(row=0, column=1, padx=(10,10), pady=1, sticky="e")
 
         self.CTkEntry.bind("<Return>", self.enter_pressed)
 
@@ -49,7 +55,8 @@ class App(ctk.CTk):
         task.streakImgLabel.grid(row=task.row, column=1, padx=20, pady=(0, 20), sticky="e")        
 
     def button_callback(self):
-        self.createTask()
+        if self.CTkEntry.get().strip() != "":
+            self.createTask()
         self.CTkEntry.delete(0, ctk.END)
         print("button was clicked")
     
