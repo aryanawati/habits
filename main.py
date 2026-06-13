@@ -2,6 +2,17 @@ import customtkinter as ctk
 from task import Task
 from datetime import datetime
 from PIL import Image
+import schedule
+import sys
+import os
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 class App(ctk.CTk):
     def __init__(self):
@@ -34,10 +45,10 @@ class App(ctk.CTk):
 
         self.checkbox = ctk.CTkCheckBox(self, text=f"{task.name}", command=lambda task=task: self.checkbox_callback(task))
         self.streaklabel = ctk.CTkLabel(self, text=f" Streak: {task.streak}")
-        self.streakImg = ctk.CTkImage(light_image=Image.open(r"images\fire.png"),dark_image=Image.open(r"images\fire.png"),size=(30,30))
+        self.streakImg = ctk.CTkImage(light_image=Image.open(resource_path(r"images\fire.png")),dark_image=Image.open(resource_path(r"images\fire.png")),size=(30,30))
         self.streakImgLabel = ctk.CTkLabel(self, image=self.streakImg, text="")
 
-        task.checkbox = self.checkbox
+        task.checkbox = self.checkbox 
         task.streaklabel = self.streaklabel
         task.streakImgLabel = self.streakImgLabel
         task.row = len(self.tasks)
@@ -59,7 +70,7 @@ class App(ctk.CTk):
             self.createTask()
         self.CTkEntry.delete(0, ctk.END)
         print("button was clicked")
-    
+
     def checkbox_callback(self, task):
         print(f"{task.name} was clicked")
         self.streakUpdate(task)

@@ -6,5 +6,6 @@ class Task:
         self.streak = 0
         self.streaklabel = None
         self.streakStartDate = None
+        self.lastStreakUpdateDate = None
         self.streakImgLabel = None
         self.completed = False
