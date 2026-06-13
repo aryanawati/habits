@@ -24,16 +24,20 @@ class App(ctk.CTk):
 
         self.tasks = []
 
+        self.titleframe = ctk.CTkFrame(self)
+        self.titleframe.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
+        # self.titlelabel = ctk.CTkLabel(self)
+
         self.entryframe = ctk.CTkFrame(self)
         self.entryframe.grid(row=0, column=0, padx=20, pady=20, sticky="ew", columnspan=2)
 
         self.entryframe.grid_columnconfigure(0, weight=1, minsize=220)
         self.entryframe.grid_columnconfigure(1, weight=0, minsize=80)
 
-        self.CTkEntry = ctk.CTkEntry(self.entryframe, placeholder_text="Enter task...", width=250)
-        self.CTkEntry.grid(row=0, column=0, padx=(10,10), pady=1, sticky="ew")
+        self.CTkEntry = ctk.CTkEntry(self.entryframe, placeholder_text="Enter task...", width=250, height=40, font=("Comic Sans MS", 20))
+        self.CTkEntry.grid(row=0, column=0, padx=(10,10), pady=15, sticky="ew")
 
-        self.button = ctk.CTkButton(self.entryframe, text="Add Task", command=self.button_callback, width=50)
+        self.button = ctk.CTkButton(self.entryframe, text="Add Task", command=self.button_callback, width=20, height=40 , font=("Comic Sans MS", 20))
         self.button.grid(row=0, column=1, padx=(10,10), pady=1, sticky="e")
 
         self.CTkEntry.bind("<Return>", self.enter_pressed)
@@ -43,18 +47,26 @@ class App(ctk.CTk):
         self.tasks.append(task)
         print(f"Task created: {task.name}")
 
-        self.checkbox = ctk.CTkCheckBox(self, text=f"{task.name}", command=lambda task=task: self.checkbox_callback(task))
-        self.streaklabel = ctk.CTkLabel(self, text=f" Streak: {task.streak}")
+        self.taskframe = ctk.CTkFrame(self)
+        
+        self.checkbox = ctk.CTkCheckBox(self.taskframe, text="", command=lambda task=task: self.checkbox_callback(task))
+        self.checkboxlabel = ctk.CTkLabel(self.taskframe, text=f"{task.name}", font=("Comic Sans MS", 20))
+        self.streaklabel = ctk.CTkLabel(self.taskframe, text=f" Streak: {task.streak}", font=("Comic Sans MS", 20))
         self.streakImg = ctk.CTkImage(light_image=Image.open(resource_path(r"images\fire.png")),dark_image=Image.open(resource_path(r"images\fire.png")),size=(30,30))
-        self.streakImgLabel = ctk.CTkLabel(self, image=self.streakImg, text="")
+        self.streakImgLabel = ctk.CTkLabel(self.taskframe, image=self.streakImg, text="")
 
-        task.checkbox = self.checkbox 
+        task.checkbox = self.checkbox
         task.streaklabel = self.streaklabel
         task.streakImgLabel = self.streakImgLabel
         task.row = len(self.tasks)
 
-        self.checkbox.grid(row=len(self.tasks), column=0, padx=20, pady=(0, 20), sticky="w")
-        self.streaklabel.grid(row=len(self.tasks), column=2, padx=20, pady=(0, 20), sticky="e")
+        self.taskframe.grid(row=len(self.tasks), column=0, padx=20, pady=5, sticky="ew", columnspan=2)
+        self.checkbox.grid(row=len(self.tasks), column=0, padx=20, pady=(20, 20), sticky="w")
+        self.checkboxlabel.grid(row=len(self.tasks), column=0, padx=(60,0), pady=(20, 20), sticky="w")
+        self.streaklabel.grid(row=len(self.tasks), column=2, padx=20, pady=(20, 20), sticky="e")
+
+        self.taskframe.grid_columnconfigure(0, weight=1, minsize=220)
+        self.taskframe.grid_columnconfigure(1, weight=1, minsize=80)
         
     def streakUpdate(self, task):
         if task.streak == 0:
@@ -63,7 +75,7 @@ class App(ctk.CTk):
         else:
             task.streak = (datetime.now() - task.streakStartDate).days + 1
         task.streaklabel.configure(text=f"Streak: {task.streak}")
-        task.streakImgLabel.grid(row=task.row, column=1, padx=20, pady=(0, 20), sticky="e")        
+        task.streakImgLabel.grid(row=task.row, column=1, padx=20, pady=(20, 20), sticky="e")        
 
     def button_callback(self):
         if self.CTkEntry.get().strip() != "":
