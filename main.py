@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 from task import Task
 from datetime import datetime
 from PIL import Image
@@ -82,36 +83,54 @@ class App(ctk.CTk):
         self.noHabitsLabel.grid_remove()
 
         fire_path = resource_path(os.path.join("images", "fire.png"))
+        notfire_path = resource_path(os.path.join("images", "grayfire.png"))
         self.checkbox = ctk.CTkCheckBox(self.taskframe, text="", command=lambda task=task: self.checkbox_callback(task), width=24)
         self.checkboxlabel = ctk.CTkLabel(self.taskframe, text=f"{task.name}", font=("SF Pro Display", 20), anchor="w", justify="left", wraplength=180)
         self.streaklabel = ctk.CTkLabel(self.taskframe, text=f"{task.streak}", font=("SF Pro Display", 20))
         self.streakImg = ctk.CTkImage(light_image=Image.open(fire_path),dark_image=Image.open(fire_path),size=(30,30))
         self.streakImgLabel = ctk.CTkLabel(self.taskframe, image=self.streakImg, text="")
+        self.streakImgNot = ctk.CTkImage(light_image=Image.open(notfire_path),dark_image=Image.open(notfire_path),size=(30,30))
+        self.streakImgNotLabel = ctk.CTkLabel(self.taskframe, image=self.streakImgNot, text="")
 
         task.checkbox = self.checkbox
         task.streaklabel = self.streaklabel
         task.streakImgLabel = self.streakImgLabel
+        task.streakImgNotLabel = self.streakImgNotLabel
         task.row = len(self.tasks)
 
         self.taskframe.grid(row=len(self.tasks) + 1, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
         self.checkbox.grid(row=0, column=0, padx=(15,10), pady=15, sticky="w")
         self.checkboxlabel.grid(row=0, column=1, padx=5, pady=15, sticky="w")
         self.streaklabel.grid(row=0, column=4, padx=(10, 15), pady=15, sticky="e")
+        self.streakImgNotLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e")
 
         self.taskframe.grid_columnconfigure(0, weight=0) #Checkbox
         self.taskframe.grid_columnconfigure(1, weight=0) #Task Name
         self.taskframe.grid_columnconfigure(2, weight=1) #Spacer
         self.taskframe.grid_columnconfigure(3, weight=0) #Fire
         self.taskframe.grid_columnconfigure(4, weight=0) #Streak Number
+
+
+
+
         
     def streakUpdate(self, task):
-        if task.streak == 0:
-            task.streakStartDate = datetime.now()
-            task.streak = 1
+        if task.checkbox.get():
+            if task.streak == 0:
+                task.streakStartDate = datetime.now()
+                task.streak = 1
+            else:
+                task.streak = (datetime.now() - task.streakStartDate).days + 1    
+            task.streakImgNotLabel.grid_remove()
+            task.streakImgLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e")
         else:
-            task.streak = (datetime.now() - task.streakStartDate).days + 1
-        task.streaklabel.configure(text=f"{task.streak}")
-        task.streakImgLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e")        
+            if task.streak != 0:
+                task.streak -=1
+                task.streakImgNotLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e")  
+            task.streakImgLabel.grid_remove()
+            task.streakImgNotLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e") 
+        task.streaklabel.configure(text=f"{task.streak}")   
+
 
     def button_callback(self):
         if self.CTkEntry.get().strip() != "":
