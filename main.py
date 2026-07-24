@@ -74,6 +74,17 @@ class App(ctk.CTk):
         self.streaklistFrame.grid_columnconfigure(0, weight=1)
         self.streaklistFrame.grid_rowconfigure(2, weight=1)
 
+    def show_menu(self, event, task):
+        print("Right-click detected:", task.name)
+        if task.isPinned:
+            task.taskMenu.entryconfigure(2, label="Unpin", command=lambda task=task: self.unpin_task(task))
+        else:
+            task.taskMenu.entryconfigure(2, label="Pin", command=lambda task=task: self.pin_task(task))
+        try:
+            task.taskMenu.tk_popup(event.x_root, event.y_root)
+        finally:
+            task.taskMenu.grab_release()
+
     def createTask(self):
         task = Task(self.CTkEntry.get())
         self.tasks.append(task)
@@ -92,7 +103,9 @@ class App(ctk.CTk):
         self.streakImgNot = ctk.CTkImage(light_image=Image.open(notfire_path),dark_image=Image.open(notfire_path),size=(30,30))
         self.streakImgNotLabel = ctk.CTkLabel(self.taskframe, image=self.streakImgNot, text="")
 
+        task.taskframe = self.taskframe
         task.checkbox = self.checkbox
+        task.checkboxlabel = self.checkboxlabel
         task.streaklabel = self.streaklabel
         task.streakImgLabel = self.streakImgLabel
         task.streakImgNotLabel = self.streakImgNotLabel
@@ -110,10 +123,18 @@ class App(ctk.CTk):
         self.taskframe.grid_columnconfigure(3, weight=0) #Fire
         self.taskframe.grid_columnconfigure(4, weight=0) #Streak Number
 
+        task.taskMenu = tk.Menu(self, tearoff=0)
+        task.taskMenu.add_command(label="Rename", command=lambda task=task: self.rename_task(task))
+        task.taskMenu.add_command(label="Delete", command=lambda task=task: self.delete_task(task))
+        task.taskMenu.add_command(label="Pin", command=lambda task=task: self.pin_task(task))
+        task.taskMenu.add_command(label="Reset Streak", command=lambda task=task: self.reset_streak(task))
 
+        widgets = [task.taskframe, task.checkbox, task.checkboxlabel, task.streaklabel, task.streakImgLabel]
+        for widget in widgets:
+            widget.bind("<Button-3>",lambda event, task=task: self.show_menu(event, task))
+            widget.bind("<Control-Button-1>", lambda event, task=task: self.show_menu(event, task))
+            widget.bind("<Button-2>", lambda event, task=task: self.show_menu(event, task))
 
-
-        
     def streakUpdate(self, task):
         if task.checkbox.get():
             if task.streak == 0:
@@ -131,7 +152,6 @@ class App(ctk.CTk):
             task.streakImgNotLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e") 
         task.streaklabel.configure(text=f"{task.streak}")   
 
-
     def button_callback(self):
         if self.CTkEntry.get().strip() != "":
             self.createTask()
@@ -143,6 +163,47 @@ class App(ctk.CTk):
 
     def enter_pressed(self, event):
         self.button_callback()
+
+    def rename_task(self,task):
+        dialog = ctk.CTkInputDialog(text="New habit name:",title="Rename Habit")
+        name = dialog.get_input()
+        if name:
+            task.name = name
+            task.checkboxlabel.configure(text=name) 
+
+    def delete_task(self, task):
+        dialog = ctk.CTkInputDialog(text="Are you sure you want to delete? (Type \"yes\" to continue )",title="Delete Habit?")
+        confirmation = dialog.get_input()
+        if confirmation and (confirmation.lower() == "yes" or confirmation.lower() == "y"):
+            task.taskframe.destroy()
+            self.tasks.remove(task) 
+
+
+    def pin_task(self, currentTask):
+        self.tasks.remove(currentTask)
+        self.tasks.insert(0, currentTask)
+
+        for row, task in enumerate(self.tasks):
+            task.row = row
+            task.taskframe.grid_configure(row=row)
+        currentTask.isPinned = True
+        currentTask.taskframe.configure(border_width=2, border_color="#3B82F6")
+
+    def unpin_task(self, currentTask):
+        currentTask.isPinned = False
+        currentTask.taskframe.configure(border_width=0)
+
+    def reset_streak(self, currentTask):
+        dialog = ctk.CTkInputDialog(text="Are you sure you want to reset your streak? (Type \"yes\" to continue )",title="Delete Streak?")
+        confirmation = dialog.get_input()
+        if confirmation and (confirmation.lower() == "yes" or confirmation.lower() == "y"):
+            currentTask.streak = 0
+            currentTask.streaklabel.configure(text="0")
+            currentTask.streakStartDate = None
+            currentTask.checkbox.deselect()
+            currentTask.completedToday = False
+            currentTask.streakImgLabel.grid_remove()
+            currentTask.streakImgNotLabel.grid(row=0, column=3, padx=0, pady=0, sticky="e") 
 
 app = App()
 app.mainloop()
